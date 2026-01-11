@@ -51,13 +51,13 @@ impl<'ra, 'tcx> Resolver<'ra, 'tcx> {
         mut self: CmResolver<'r, 'ra, 'tcx>,
         scope_set: ScopeSet<'ra>,
         parent_scope: &ParentScope<'ra>,
-        orig_ctxt: SyntaxContext,
+        orig_ctxt: Span,
         derive_fallback_lint_id: Option<NodeId>,
         mut visitor: impl FnMut(
             &mut CmResolver<'r, 'ra, 'tcx>,
             Scope<'ra>,
             UsePrelude,
-            SyntaxContext,
+            Span,
         ) -> ControlFlow<T>,
     ) -> Option<T> {
         // General principles:
