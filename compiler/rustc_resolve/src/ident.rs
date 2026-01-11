@@ -236,11 +236,12 @@ impl<'ra, 'tcx> Resolver<'ra, 'tcx> {
     fn hygienic_lexical_parent(
         &self,
         module: Module<'ra>,
-        ctxt: &mut SyntaxContext,
+        span: &mut Span,
         derive_fallback_lint_id: Option<NodeId>,
     ) -> Option<(Module<'ra>, Option<NodeId>)> {
-        if !module.expansion.outer_expn_is_descendant_of(*ctxt) {
-            return Some((self.expn_def_scope(ctxt.remove_mark()), None));
+        let ctxt = span.ctxt();
+        if !module.expansion.outer_expn_is_descendant_of(ctxt) {
+            return Some((self.expn_def_scope(span.remove_mark()), None));
         }
 
         if let ModuleKind::Block = module.kind {
@@ -270,7 +271,7 @@ impl<'ra, 'tcx> Resolver<'ra, 'tcx> {
             let ext = &self.get_macro_by_def_id(def_id).ext;
             if ext.builtin_name.is_none()
                 && ext.macro_kinds() == MacroKinds::DERIVE
-                && parent.expansion.outer_expn_is_descendant_of(*ctxt)
+                && parent.expansion.outer_expn_is_descendant_of(ctxt)
             {
                 return Some((parent, derive_fallback_lint_id));
             }
@@ -431,10 +432,10 @@ impl<'ra, 'tcx> Resolver<'ra, 'tcx> {
         let break_result = self.visit_scopes(
             scope_set,
             parent_scope,
-            orig_ident.span.ctxt(),
+            orig_ident.span,
             derive_fallback_lint_id,
             |this, scope, use_prelude, ctxt| {
-                let ident = Ident::new(orig_ident.name, orig_ident.span.with_ctxt(ctxt));
+                let ident = Ident::new(orig_ident.name, ctxt);
                 // The passed `ctxt` is already normalized, so avoid expensive double normalization.
                 let ident = Macros20NormalizedIdent(ident);
                 let res = match this.reborrow().resolve_ident_in_scope(
